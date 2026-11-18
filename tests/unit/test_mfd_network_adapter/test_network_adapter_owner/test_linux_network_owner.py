@@ -131,19 +131,17 @@ class TestLinuxNetworkOwner:
         return LinuxNetworkAdapterOwner(connection=conn)
 
     @pytest.mark.parametrize(
-        ("options", "expected"), [({}, []), ({"params": None}, []), ({"params": "debug=4"}, ["debug=4"])]
+        ("options", "expected"),
+        [({}, []), ({"params": None}, []), ({"params": "debug=4"}, ["debug=4"])],
     )
-    def test_driver_reload_module_parameters(self, owner, options, expected):
+    def test_driver_module_parameters(self, owner, options, expected):
         owner.driver.reload_module(module_name="iavf", reload_time=0, **options)
-
         command = owner._connection.execute_command.call_args.args[0]
         assert command.split() == ["modprobe", "iavf"] + expected
 
-    def test_driver_load_module_file_without_parameters(self, owner):
-        owner.driver.load_module_file(module_filepath=PurePosixPath("iavf.ko"))
-
+        owner.driver.load_module_file(module_filepath=PurePosixPath("iavf.ko"), **options)
         command = owner._connection.execute_command.call_args.args[0]
-        assert command.split() == ["insmod", "iavf.ko"]
+        assert command.split() == ["insmod", "iavf.ko"] + expected
 
     def test__gather_all_sys_class_interfaces_not_virtual_vmnic(self, owner, mocker):
         result = owner._gather_all_sys_class_interfaces_not_virtual(
